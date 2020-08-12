@@ -1,20 +1,24 @@
-<br />
-<img src="./src/logo.png" width="200px" />
-<br />
-
 # Teki
 
-A **super tiny** TypeScript path parser (**1.4kb** gzipped!)
+<img src="./src/logo.png" width="200px" />
+
+A **super tiny** TypeScript path parser (**1.2kb** gzipped!) with a
+surprising amount of features.
 
 * 📔 [API](#api) docs
 * 🚀 Try it in a [fiddle](https://jsfiddle.net/wpo98cy4/1)
 
+#### Installation
+
+`npm install --save bueno` or `yarn add bueno`.
+
 #### Usage
 
 ```typescript
+import { parse } from 'teki'
 
 const userRoute =
-  parse(`/user/:id/messages?page=:page`)
+  parse('/user/:id/messages?page=:page')
 
 >> userRoute('http://localhost/user/123/messages?page=3)')
 { path: { id: '123' }, query: { page: '3' }, hash: {} }
@@ -25,9 +29,10 @@ const userRoute =
 `teki` can *reverse parse* parameter dictionaries into URLs
 
 ```typescript
+import { reverse } from 'teki'
 
 const reverseUserRoute =
-  reverse(`/user/:id/messages?page=:page`)
+  reverse('/user/:id/messages?page=:page')
 
 >> reverseUserRoute({ path: { id: 456 }, query: { page: 9 } })
 '/user/456?page=9'
@@ -46,7 +51,7 @@ const queryRoute =
 { path: {}, query: { bar: 'hello', foo: 'world' }, hash: {} }
 ```
 
-### Optional query parameters
+#### Optional query parameters
 
 Query parameters can be made optional by postfixing its parameter name
 with `?`
@@ -70,7 +75,7 @@ expressions by writing a regex after the name in angle brackets
 ```typescript
 // Only match routes where id is numeric
 const userRoute =
-  parse(`/user/:id<\\d+>`)
+  parse('/user/:id<\\d+>')
   
 >> userRoute('http://localhost/user/foo')
 null
@@ -81,7 +86,7 @@ null
 
 #### How does it work?
 
-`teki` achieves its *extremely* small size and high performance by using
+`teki` achieves its small size and high performance by using
 the native [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL)
 API instead of a custom parser.
 
