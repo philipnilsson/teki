@@ -1,14 +1,5 @@
 import { parse, reverse } from '../index'
 
-describe.only('wat', () => {
-  test('123123', () => {
-    const userRoute =
-      parse('/user/:id')
-
-    console.log(userRoute('http://localhost/user/123'))
-  })
-})
-
 describe('parsing', () => {
   describe('path', () => {
     test('happy 1', () => {

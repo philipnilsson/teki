@@ -5,7 +5,7 @@ export default {
   input: __dirname + '/src/iife.ts',
   
   output: {
-    file: "cdn/bueno.min.js",
+    file: "cdn/teki.min.js",
     format: 'iife',
   },
   

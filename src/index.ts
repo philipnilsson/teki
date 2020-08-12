@@ -1,6 +1,10 @@
 const decode =
   decodeURIComponent
 
+function pathToURL(url : string) {
+  return new URL('ftp://x/' + url)
+}
+
 function trimSlashes(p : string) {
   return p.replace(/(\/$)|(^\/)/g, '')
 }
@@ -144,7 +148,7 @@ export function parse(pattern : string) {
   }
 
   const target =
-    new URL('x://x/' + escapeRegexes(trimSlashes(pattern)))
+    pathToURL(escapeRegexes(trimSlashes(pattern)))
 
   const targetSegments =
     splitPath(trimSlashes(target.pathname))
@@ -234,7 +238,7 @@ export function reverse(
     escapeRegexes(trimSlashes(pattern))
 
   const target =
-    new URL('x://x/' + escapedString)
+    pathToURL(escapedString)
 
   const segments =
     splitPath(target.pathname)
@@ -248,7 +252,7 @@ export function reverse(
   ) : string {
 
     const result =
-      new URL('x://x/')
+      pathToURL('')
 
     result.pathname =
       segments
@@ -269,7 +273,7 @@ export function reverse(
       )
 
     return ('' + result)
-      .replace('x://x', '')
+      .replace('ftp://x', '')
   }
 }
 
