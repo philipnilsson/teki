@@ -6,11 +6,11 @@ A **super tiny** TypeScript path parser (**1.2kb** gzipped!) with a
 surprising amount of features.
 
 * 📔 [API](#api) docs
-* 🚀 Try it in a [fiddle](https://jsfiddle.net/s06mfqr5/)
+* 🚀 Try it in a [fiddle](https://jsfiddle.net/kcyz89q5/)
 
 #### Installation
 
-`npm install --save bueno` or `yarn add bueno`.
+`npm install --save teki` or `yarn add teki`.
 
 #### Usage
 
@@ -65,6 +65,16 @@ const optionalQuery =
 
 >> optionalQuery(''http://localhost/myRoute?foo=test')
 { foo: 'test', bar: null }
+```
+
+#### Hash parameters
+
+```typescript
+const hashParam =
+  parse('/myRoute#:section')
+
+>> hashParam('http://localhost/myRoute#test')
+{ section: test }
 ```
 
 #### Refining paths using regular expressions
