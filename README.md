@@ -14,11 +14,7 @@ const userRoute =
   parse(`/user/:id/messages?page=:page`)
 
 >> userRoute('http://localhost/user/123/messages?page=3)')
-{
-  path: { id: '123' },
-  query: { page: '3' },
-  hash: {}
-}
+{ path: { id: '123' }, query: { page: '3' }, hash: {} }
 ```
 
 #### Reverse parsing
@@ -44,11 +40,23 @@ const queryRoute =
   parse('/myRoute?foo=:foo&bar=:bar')
 
 >> queryRoute('http://localhost/myRoute?bar=hello&foo=world')
-{ 
-  path: {},
-  query: { bar: 'hello', foo: 'world' },
-  hash: {}
-}
+{ path: {}, query: { bar: 'hello', foo: 'world' }, hash: {} }
+```
+
+### Optional query parameters
+
+Query parameters can be made optional by postfixing its parameter name
+with `?`
+
+```typescript
+const optionalQuery =
+  parse('/myRoute?foo?=:foo&bar?=:bar')
+
+>> optionalQuery('/myRoute')
+{ path: {}, query: { foo: null, bar: null }, hash: {} }
+
+>> optionalQuery('/myRoute?foo=test')
+{ path: {}, query: { foo: 'test', bar: null }, hash: {} }
 ```
 
 #### Refining paths using regular expressions
@@ -65,11 +73,7 @@ const userRoute =
 null
 
 >> userRoute('http://localhost/user/123')
-{ 
-  path: { id: '123' },
-  query: {},
-  hash: {}
-}
+{ path: { id: '123' }, query: {}, hash: {} }
 ```
 
 #### How does it work?
@@ -81,15 +85,14 @@ API instead of a custom parser.
 Keep in mind that this means that it will not work without a polyfill
 for `URL` in Internet Explorer.
 
-
 # API
 
-#### `type Dict`
+#### `type RouteParams`
 
 ```typescript
-type Dict = {
+type RouteParams = {
   path : Record<string, string>
-  query : Record<string, string>
+  query : Record<string, string | null>
   hash : Record<string, string>
 }
 ```
@@ -99,7 +102,7 @@ The structure of the object returned when successfully parsing a pattern.
 #### `parse`
 
 ```java
-parse :: (pattern : string) => (url: string) => null | Dict
+parse :: (pattern : string) => (url: string) => null | RouteParams
 ```
 
 Parse a pattern, then accept a url to match. Returns `null` on a
@@ -110,7 +113,7 @@ This function is *curried* so that its faster on repeated usages.
 #### `reverse`
 
 ```java
-reverse :: (pattern : string) => (dict: Dict) => string
+reverse :: (pattern : string) => (dict: RouteParams) => string
 ```
 
 Use a dictionary to reverse-parse it back into a URL using the

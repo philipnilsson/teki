@@ -147,6 +147,54 @@ describe('parsing', () => {
           ('http://localhost/foo?lorem&ipsum&dolor=sitx')
       ).toEqual(null)
     })
+
+    test('optional params 1', () => {
+      expect(
+        parse
+          ('/foo?lorem?=:lorem')
+          ('http://localhost/foo?lorem=123')
+      ).toEqual({
+        path: {},
+        query: { lorem: '123' },
+        hash: {}
+      })
+    })
+
+    test('optional params 2', () => {
+      expect(
+        parse
+          ('/foo?lorem?=:lorem')
+          ('http://localhost/foo')
+      ).toEqual({
+        path: {},
+        query: { lorem: null },
+        hash: {}
+      })
+    })
+
+    test('optional params 3', () => {
+      expect(
+        parse
+          ('/foo?lorem?=:lorem&ipsum=:ipsum&dolor?=:dolor')
+          ('http://localhost/foo?ipsum=123')
+      ).toEqual({
+        path: {},
+        query: { lorem: null, ipsum: '123', dolor: null },
+        hash: {}
+      })
+    })
+
+    test('optional params with regex', () => {
+      expect(
+        parse
+          ('/foo?lorem?=:lorem<\\d+>&ipsum=:ipsum&dolor?=:dolor')
+          ('http://localhost/foo?ipsum=123')
+      ).toEqual({
+        path: {},
+        query: { lorem: null, ipsum: '123', dolor: null },
+        hash: {}
+      })
+    })
   })
 
   describe('hash', () => {
@@ -204,7 +252,8 @@ describe('parsing', () => {
   })
 })
 
-describe('unparsing', () => {
+describe('reversing', () => {
+
   describe('path', () => {
     test('happy 1', () => {
       expect(
@@ -310,6 +359,54 @@ describe('unparsing', () => {
             query: {}
           })
       ).toEqual('/foo?lorem=&ipsum=&dolor=')
+    })
+
+    test('optional params 1', () => {
+      expect(
+        reverse
+          ('/foo?lorem?=:lorem')
+          ({
+            path: {},
+            query: { lorem: '123' },
+            hash: {}
+          })
+      ).toEqual('/foo?lorem=123')
+    })
+
+    test('optional params 2', () => {
+      expect(
+        reverse
+          ('/foo?lorem?=:lorem')
+          ({
+            path: {},
+            query: {},
+            hash: {}
+          })
+      ).toEqual('/foo')
+    })
+
+    test('optional params 3', () => {
+      expect(
+        reverse
+          ('/foo?lorem?=:lorem&ipsum=:ipsum&dolor?=:dolor')
+          ({
+            path: {},
+            query: { ipsum: '123' },
+            hash: {}
+          })
+      ).toEqual('/foo?ipsum=123')
+    })
+
+    test('optional params with regex', () => {
+      expect(
+        reverse
+          ('/foo?lorem?=:lorem<\\d+>&ipsum=:ipsum&dolor?=:dolor')
+          ({
+            path: {},
+            query: { lorem: null, ipsum: '123' },
+            hash: {}
+          })
+      ).toEqual('/foo?ipsum=123')
     })
   })
 

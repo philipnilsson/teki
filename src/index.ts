@@ -1,3 +1,9 @@
+type RouteParams = {
+  path : Record<string, string>,
+  query : Record<string, string | null>,
+  hash : Record<string, string>,
+}
+
 const decode =
   decodeURIComponent
 
@@ -42,14 +48,18 @@ function parseSegment(seg : string) {
       name =
         seg.slice(1, ix)
     }
+
     return function(
       str : string,
       paths : Record<string, string>
     ) : boolean {
+      paths[name] =
+        str
+
       if (regex && !regex.test(str)) {
         return false
       }
-      paths[name] = str
+
       return true
     }
   } else {
@@ -86,6 +96,10 @@ function parsePaths(
   }
 }
 
+function optional(p : string) {
+  return p.endsWith('?')
+}
+
 function parseQueries(
   target : URLSearchParams
 ) {
@@ -102,12 +116,21 @@ function parseQueries(
     const queryKeys =
       Array.from(query.keys())
 
-    if (keys.some(x => !queryKeys.includes(x))) {
+    if (!keys.every(x => optional(x) || queryKeys.includes(x))) {
       return false
     }
 
     for (let i = 0; i < keys.length; i++) {
-      if (!parsers[i](query.get(keys[i])!, params)) {
+      let key =
+        keys[i]
+
+      const opt =
+        optional(key)
+
+      key =
+        opt ? key.slice(0, -1) : key
+
+      if (!parsers[i](query.get(key)!, params) && !opt) {
         return false
       }
     }
@@ -121,7 +144,7 @@ function escapeRegexes(
 ) : string {
 
   const match =
-    pattern.match(/:\w[\w\d_]*<[^>]+>/g) || []
+    pattern.match(/:\w[\w\d_]*\??<[^>]+>/g) || []
 
   for (let i = 0; i < match.length; i++) {
     const m =
@@ -165,11 +188,7 @@ export function parse(pattern : string) {
   const ph =
     parseSegment(targetHash)
 
-  return function(urlString : string) : null | {
-    path : Record<string, string>
-    query : Record<string, string>
-    hash : Record<string, string>
-  } {
+  return function(urlString : string) : null | RouteParams {
     const route =
       new URL(urlString)
 
@@ -205,10 +224,10 @@ export function parse(pattern : string) {
 
 function reverseSegment(
   str : string,
-  dict : Record<string, string>
+  dict : Record<string, string | null>
 ) : string {
   const match =
-    str.match(/:\w[\w\d_]*(<[^>]+>)?/g) || []
+    str.match(/:\w[\w\d_]*\??(<[^>]+>)?/g) || []
 
   for (let i = 0; i < match.length; i++) {
     const m =
@@ -217,15 +236,19 @@ function reverseSegment(
     const endIx =
       m.indexOf('<')
 
-    const name =
+    let name =
       m.slice(1, endIx < 0 ? m.length : endIx)
+
+    if (optional(name)) {
+      name = name.slice(0, -1)
+    }
 
     if (!(name in dict)) {
       throw new Error(name + ' ' + undefined)
     }
 
     str =
-      str.replace(m, dict[name])
+      str.replace(m, dict[name]!)
   }
 
   return str
@@ -244,11 +267,7 @@ export function reverse(
     splitPath(target.pathname)
 
   return function(
-    dict : {
-      path : Record<string, string>,
-      query : Record<string, string>,
-      hash : Record<string, string>,
-    }
+    dict : RouteParams
   ) : string {
 
     const result =
@@ -260,6 +279,17 @@ export function reverse(
         .join('/')
 
     target.searchParams.forEach((regex, name) => {
+      const opt =
+        optional(name)
+
+      name =
+        opt ? name.slice(0, -1) : name
+
+      if (opt && !dict.query[name]) {
+        result.searchParams.delete(name)
+        return
+      }
+
       result.searchParams.set(
         name,
         reverseSegment(regex, dict.query)
@@ -276,4 +306,3 @@ export function reverse(
       .replace('ftp://x', '')
   }
 }
-
