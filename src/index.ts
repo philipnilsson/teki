@@ -1,17 +1,20 @@
+const decode =
+  decodeURIComponent
+
 function trimSlashes(p : string) {
   return p.replace(/(\/$)|(^\/)/g, '')
 }
 
 function splitPath(path : string) {
-  return trimSlashes(path).split('/').map(decodeURIComponent)
+  return trimSlashes(path).split('/').map(decode)
 }
 
 function getHash(path : string) {
-  return decodeURIComponent(path.replace(/^#/, ''))
+  return decode(path.replace(/^#/, ''))
 }
 
 function parseSegment(seg : string) {
-  if (seg.startsWith(':')) {
+  if (seg[0] === ':') {
     let regex : null | RegExp =
       null
 
@@ -23,7 +26,7 @@ function parseSegment(seg : string) {
 
     if (ix >= 0) {
       if (seg[seg.length - 1] !== '>') {
-        throw new Error('Expected closing >')
+        throw new Error('No closing >')
       }
 
       const regexStr =
@@ -38,7 +41,7 @@ function parseSegment(seg : string) {
     return function(
       str : string,
       paths : Record<string, string>
-    ) {
+    ) : boolean {
       if (regex && !regex.test(str)) {
         return false
       }
@@ -49,7 +52,7 @@ function parseSegment(seg : string) {
     return function(
       str : string,
       _paths : Record<string, string>
-    ) {
+    ) : boolean {
       return str === seg
     }
   }
@@ -91,7 +94,7 @@ function parseQueries(
   return function(
     query : URLSearchParams,
     params : Record<string, string>
-  ) {
+  ) : boolean {
     const queryKeys =
       Array.from(query.keys())
 
@@ -101,7 +104,7 @@ function parseQueries(
 
     for (let i = 0; i < keys.length; i++) {
       if (!parsers[i](query.get(keys[i])!, params)) {
-        return null
+        return false
       }
     }
 
@@ -135,7 +138,7 @@ function escapeRegexes(
   return pattern
 }
 
-export function parseRoute(pattern : string) {
+export function parse(pattern : string) {
   if (pattern[0] !== '/') {
     throw new Error('Must start with /')
   }
@@ -196,7 +199,7 @@ export function parseRoute(pattern : string) {
   }
 }
 
-function reverse(
+function reverseSegment(
   str : string,
   dict : Record<string, string>
 ) : string {
@@ -214,7 +217,7 @@ function reverse(
       m.slice(1, endIx < 0 ? m.length : endIx)
 
     if (!(name in dict)) {
-      throw new Error(`Dict should contain ${name}`)
+      throw new Error(name + ' ' + undefined)
     }
 
     str =
@@ -224,7 +227,7 @@ function reverse(
   return str
 }
 
-export function reverseRoute(
+export function reverse(
   pattern : string
 ) {
   const escapedString =
@@ -249,19 +252,19 @@ export function reverseRoute(
 
     result.pathname =
       segments
-        .map(x => reverse(x, dict.path))
+        .map(x => reverseSegment(x, dict.path))
         .join('/')
 
     target.searchParams.forEach((regex, name) => {
       result.searchParams.set(
         name,
-        reverse(regex, dict.query)
+        reverseSegment(regex, dict.query)
       )
     })
 
     result.hash =
-      reverse(
-        decodeURIComponent(target.hash),
+      reverseSegment(
+        decode(target.hash),
         dict.hash
       )
 

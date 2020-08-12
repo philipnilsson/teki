@@ -1,10 +1,19 @@
-import { parseRoute, reverseRoute } from '../index'
+import { parse, reverse } from '../index'
+
+describe.only('wat', () => {
+  test('123123', () => {
+    const userRoute =
+      parse('/user/:id')
+
+    console.log(userRoute('http://localhost/user/123'))
+  })
+})
 
 describe('parsing', () => {
   describe('path', () => {
     test('happy 1', () => {
       expect(
-        parseRoute('/foo/:path/:baz<foo(1|2|3)>')
+        parse('/foo/:path/:baz<foo(1|2|3)>')
           ('http://localhost/foo/bar/foo1')
       ).toEqual({
         query: {},
@@ -18,7 +27,7 @@ describe('parsing', () => {
 
     test('happy 2', () => {
       expect(
-        parseRoute('/:baz<(aa){2,3}>/')
+        parse('/:baz<(aa){2,3}>/')
           ('https://www.example.com/aaaaaa')
       ).toEqual({
         query: {},
@@ -31,7 +40,7 @@ describe('parsing', () => {
 
     test('happy 3', () => {
       expect(
-        parseRoute('/user/:id<\\d+>/')
+        parse('/user/:id<\\d+>/')
           ('https://www.example.com:8080/user/123')
       ).toEqual({
         query: {},
@@ -44,26 +53,26 @@ describe('parsing', () => {
 
     test('fail 1', () => {
       expect(
-        parseRoute('/:baz<(aa){2,3}>/')
+        parse('/:baz<(aa){2,3}>/')
           ('https://www.example.com/aaaaa')
       ).toEqual(null)
     })
 
     test('fail 2', () => {
-      expect(() => parseRoute('noleadingslash'))
+      expect(() => parse('noleadingslash'))
         .toThrow('Must start with /')
     })
 
     test('fail 3', () => {
-      expect(() => parseRoute('/foo/:path<oops')('http://localhost/foo/path'))
-        .toThrow('Expected closing >')
+      expect(() => parse('/foo/:path<oops')('http://localhost/foo/path'))
+        .toThrow('No closing >')
     })
   })
 
   describe('query', () => {
     test('happy 1', () => {
       expect(
-        parseRoute
+        parse
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
           ('http://localhost/foo?ipsum=123&lorem=aaa')
       ).toEqual({
@@ -75,7 +84,7 @@ describe('parsing', () => {
 
     test('happy 2', () => {
       expect(
-        parseRoute
+        parse
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
           ('http://localhost/foo?ipsum=123&lorem=b')
       ).toEqual({
@@ -87,7 +96,7 @@ describe('parsing', () => {
 
     test('fail 1', () => {
       expect(
-        parseRoute
+        parse
           ('/foo?ipsum=:ipsum&lorem=:hi<a+|b+>')
           ('http://localhost/foo?ipsum=123&lorem=')
       ).toEqual(null)
@@ -95,7 +104,7 @@ describe('parsing', () => {
 
     test('superset', () => {
       expect(
-        parseRoute
+        parse
           ('/foo?lorem=:hi<a+|b+>')
           ('http://localhost/foo?ipsum=123&lorem=aaa')
       ).toEqual({
@@ -107,7 +116,7 @@ describe('parsing', () => {
 
     test('subset', () => {
       expect(
-        parseRoute
+        parse
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
           ('http://localhost/foo?ipsum=123')
       ).toEqual(null)
@@ -115,7 +124,7 @@ describe('parsing', () => {
 
     test('no = #1', () => {
       expect(
-        parseRoute
+        parse
           ('/foo?lorem&ipsum&dolor')
           ('http://localhost/foo?lorem&ipsum&dolor')
       ).toEqual({
@@ -127,7 +136,7 @@ describe('parsing', () => {
 
     test('no = #2', () => {
       expect(
-        parseRoute
+        parse
           ('/foo?lorem&ipsum=:ipsum&dolor=:dolor<sit|amet>')
           ('http://localhost/foo?lorem&ipsum&dolor=sit')
       ).toEqual({
@@ -142,7 +151,7 @@ describe('parsing', () => {
 
     test('no = #3', () => {
       expect(
-        parseRoute
+        parse
           ('/foo?lorem&ipsum=:ipsum&dolor=:dolor<sit|amet>')
           ('http://localhost/foo?lorem&ipsum&dolor=sitx')
       ).toEqual(null)
@@ -152,7 +161,7 @@ describe('parsing', () => {
   describe('hash', () => {
     test('happy 1', () => {
       expect(
-        parseRoute('/foo#:word<c?a*b{1,2}>')
+        parse('/foo#:word<c?a*b{1,2}>')
           ('http://localhost/foo#aaabb')
       ).toEqual({
         query: {},
@@ -165,7 +174,7 @@ describe('parsing', () => {
 
     test('happy 2', () => {
       expect(
-        parseRoute('/foo#:word<c?a*b{1,2}>')
+        parse('/foo#:word<c?a*b{1,2}>')
           ('http://localhost/foo#b')
       ).toEqual({
         query: {},
@@ -178,7 +187,7 @@ describe('parsing', () => {
 
     test('fail 1', () => {
       expect(
-        parseRoute('/foo#:word<c?a*b{1,2}>')
+        parse('/foo#:word<c?a*b{1,2}>')
           ('http://localhost/foo#cbbb')
       ).toEqual(null)
     })
@@ -186,7 +195,7 @@ describe('parsing', () => {
 
   test('all together now', () => {
     expect(
-      parseRoute('/foo/:b1_2/:baz<\\d+>?lorem&ipsum=:ipsum&dolor=:dolor<sit|amet>#:word<c?a*b{1,2}>')
+      parse('/foo/:b1_2/:baz<\\d+>?lorem&ipsum=:ipsum&dolor=:dolor<sit|amet>#:word<c?a*b{1,2}>')
         ('http://localhost/foo/bar/123?lorem&ipsum=ip&dolor=amet#caaabb')
     ).toEqual({
       hash: {
@@ -208,7 +217,7 @@ describe('unparsing', () => {
   describe('path', () => {
     test('happy 1', () => {
       expect(
-        reverseRoute('/foo/:path/:baz<foo(1|2|3)>')({
+        reverse('/foo/:path/:baz<foo(1|2|3)>')({
           query: {},
           path: {
             baz: 'foo1',
@@ -223,7 +232,7 @@ describe('unparsing', () => {
 
     test('happy 2', () => {
       expect(
-        reverseRoute('/:baz<(aa){2,3}>/')
+        reverse('/:baz<(aa){2,3}>/')
           ({
             query: {},
             path: {
@@ -236,7 +245,7 @@ describe('unparsing', () => {
 
     test('happy 3', () => {
       expect(
-        reverseRoute('/user/:id<\\d+>/')({
+        reverse('/user/:id<\\d+>/')({
           query: {},
           path: {
             id: '123',
@@ -248,15 +257,15 @@ describe('unparsing', () => {
 
     test('fail 1', () => {
       expect(
-        () => reverseRoute('/:baz<(aa){2,3}>/')({ query: {}, path: {}, hash: {} })
-      ).toThrow('Dict should contain baz')
+        () => reverse('/:baz<(aa){2,3}>/')({ query: {}, path: {}, hash: {} })
+      ).toThrow('baz undefined')
     })
   })
 
   describe('query', () => {
     test('happy 1', () => {
       expect(
-        reverseRoute
+        reverse
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
           ({
             query: { hi: 'aaa', ipsum: '123' },
@@ -268,7 +277,7 @@ describe('unparsing', () => {
 
     test('happy 2', () => {
       expect(
-        reverseRoute
+        reverse
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
           ({
             query: { hi: 'b', ipsum: '123' },
@@ -280,7 +289,7 @@ describe('unparsing', () => {
 
     test('superset', () => {
       expect(
-        reverseRoute
+        reverse
           ('/foo?lorem=:hi<a+|b+>')
           ({
             query: { hi: 'aaa', bar: '123', baz: '' },
@@ -292,17 +301,17 @@ describe('unparsing', () => {
 
     test('subset', () => {
       expect(
-        () => reverseRoute
+        () => reverse
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
           ({ query: {}, path: {}, hash: {} })
       ).toThrow(
-        'Dict should contain hi'
+        'hi undefined'
       )
     })
 
     test('no =', () => {
       expect(
-        reverseRoute
+        reverse
           ('/foo?lorem&ipsum&dolor')
           ({
             path: {},
@@ -316,7 +325,7 @@ describe('unparsing', () => {
   describe('hash', () => {
     test('happy 1', () => {
       expect(
-        parseRoute('/foo#:word<c?a*b{1,2}>')
+        parse('/foo#:word<c?a*b{1,2}>')
           ('http://localhost/foo#aaabb')
       ).toEqual({
         query: {},
@@ -329,7 +338,7 @@ describe('unparsing', () => {
 
     test('happy 2', () => {
       expect(
-        reverseRoute('/foo#:word<c?a*b{1,2}>')
+        reverse('/foo#:word<c?a*b{1,2}>')
           ({
             query: {},
             path: {},
