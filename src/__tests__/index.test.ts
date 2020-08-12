@@ -7,12 +7,8 @@ describe('parsing', () => {
         parse('/foo/:path/:baz<foo(1|2|3)>')
           ('http://localhost/foo/bar/foo1')
       ).toEqual({
-        query: {},
-        path: {
-          baz: 'foo1',
-          path: 'bar',
-        },
-        hash: {}
+        baz: 'foo1',
+        path: 'bar',
       })
     })
 
@@ -21,11 +17,7 @@ describe('parsing', () => {
         parse('/:baz<(aa){2,3}>/')
           ('https://www.example.com/aaaaaa')
       ).toEqual({
-        query: {},
-        path: {
-          baz: 'aaaaaa',
-        },
-        hash: {}
+        baz: 'aaaaaa',
       })
     })
 
@@ -34,11 +26,7 @@ describe('parsing', () => {
         parse('/user/:id<\\d+>/')
           ('https://www.example.com:8080/user/123')
       ).toEqual({
-        query: {},
-        path: {
-          id: '123',
-        },
-        hash: {}
+        id: '123',
       })
     })
 
@@ -67,9 +55,8 @@ describe('parsing', () => {
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
           ('http://localhost/foo?ipsum=123&lorem=aaa')
       ).toEqual({
-        query: { hi: 'aaa', ipsum: '123' },
-        path: {},
-        hash: {}
+        hi: 'aaa',
+        ipsum: '123'
       })
     })
 
@@ -79,9 +66,8 @@ describe('parsing', () => {
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
           ('http://localhost/foo?ipsum=123&lorem=b')
       ).toEqual({
-        query: { hi: 'b', ipsum: '123' },
-        path: {},
-        hash: {}
+        hi: 'b',
+        ipsum: '123'
       })
     })
 
@@ -99,9 +85,7 @@ describe('parsing', () => {
           ('/foo?lorem=:hi<a+|b+>')
           ('http://localhost/foo?ipsum=123&lorem=aaa')
       ).toEqual({
-        query: { hi: 'aaa' },
-        path: {},
-        hash: {}
+        hi: 'aaa'
       })
     })
 
@@ -118,11 +102,7 @@ describe('parsing', () => {
         parse
           ('/foo?lorem&ipsum&dolor')
           ('http://localhost/foo?lorem&ipsum&dolor')
-      ).toEqual({
-        path: {},
-        hash: {},
-        query: {}
-      })
+      ).toEqual({})
     })
 
     test('no = #2', () => {
@@ -131,12 +111,8 @@ describe('parsing', () => {
           ('/foo?lorem&ipsum=:ipsum&dolor=:dolor<sit|amet>')
           ('http://localhost/foo?lorem&ipsum&dolor=sit')
       ).toEqual({
-        path: {},
-        hash: {},
-        query: {
-          ipsum: '',
-          dolor: 'sit'
-        }
+        ipsum: '',
+        dolor: 'sit'
       })
     })
 
@@ -154,9 +130,7 @@ describe('parsing', () => {
           ('/foo?lorem?=:lorem')
           ('http://localhost/foo?lorem=123')
       ).toEqual({
-        path: {},
-        query: { lorem: '123' },
-        hash: {}
+        lorem: '123'
       })
     })
 
@@ -166,9 +140,7 @@ describe('parsing', () => {
           ('/foo?lorem?=:lorem')
           ('http://localhost/foo')
       ).toEqual({
-        path: {},
-        query: { lorem: null },
-        hash: {}
+        lorem: null
       })
     })
 
@@ -178,9 +150,9 @@ describe('parsing', () => {
           ('/foo?lorem?=:lorem&ipsum=:ipsum&dolor?=:dolor')
           ('http://localhost/foo?ipsum=123')
       ).toEqual({
-        path: {},
-        query: { lorem: null, ipsum: '123', dolor: null },
-        hash: {}
+        lorem: null,
+        ipsum: '123',
+        dolor: null
       })
     })
 
@@ -190,9 +162,9 @@ describe('parsing', () => {
           ('/foo?lorem?=:lorem<\\d+>&ipsum=:ipsum&dolor?=:dolor')
           ('http://localhost/foo?ipsum=123')
       ).toEqual({
-        path: {},
-        query: { lorem: null, ipsum: '123', dolor: null },
-        hash: {}
+        lorem: null,
+        ipsum: '123',
+        dolor: null
       })
     })
   })
@@ -203,11 +175,7 @@ describe('parsing', () => {
         parse('/foo#:word<c?a*b{1,2}>')
           ('http://localhost/foo#aaabb')
       ).toEqual({
-        query: {},
-        path: {},
-        hash: {
-          word: 'aaabb'
-        }
+        word: 'aaabb'
       })
     })
 
@@ -216,11 +184,7 @@ describe('parsing', () => {
         parse('/foo#:word<c?a*b{1,2}>')
           ('http://localhost/foo#b')
       ).toEqual({
-        query: {},
-        path: {},
-        hash: {
-          word: 'b'
-        }
+        word: 'b'
       })
     })
 
@@ -237,33 +201,22 @@ describe('parsing', () => {
       parse('/foo/:b1_2/:baz<\\d+>?lorem&ipsum=:ipsum&dolor=:dolor<sit|amet>#:word<c?a*b{1,2}>')
         ('http://localhost/foo/bar/123?lorem&ipsum=ip&dolor=amet#caaabb')
     ).toEqual({
-      hash: {
-        word: 'caaabb',
-      },
-      path: {
-        b1_2: 'bar',
-        baz: '123',
-      },
-      query: {
-        dolor: 'amet',
-        ipsum: 'ip',
-      }
+      word: 'caaabb',
+      b1_2: 'bar',
+      baz: '123',
+      dolor: 'amet',
+      ipsum: 'ip',
     })
   })
 })
 
 describe('reversing', () => {
-
   describe('path', () => {
     test('happy 1', () => {
       expect(
         reverse('/foo/:path/:baz<foo(1|2|3)>')({
-          query: {},
-          path: {
-            baz: 'foo1',
-            path: 'bar',
-          },
-          hash: {}
+          baz: 'foo1',
+          path: 'bar',
         })
       ).toEqual(
         '/foo/bar/foo1'
@@ -273,31 +226,19 @@ describe('reversing', () => {
     test('happy 2', () => {
       expect(
         reverse('/:baz<(aa){2,3}>/')
-          ({
-            query: {},
-            path: {
-              baz: 'aaaaaa',
-            },
-            hash: {}
-          })
+          ({ baz: 'aaaaaa' })
       ).toEqual('/aaaaaa')
     })
 
     test('happy 3', () => {
       expect(
-        reverse('/user/:id<\\d+>/')({
-          query: {},
-          path: {
-            id: '123',
-          },
-          hash: {}
-        })
+        reverse('/user/:id<\\d+>/')({ id: '123' })
       ).toEqual('/user/123')
     })
 
     test('fail 1', () => {
       expect(
-        () => reverse('/:baz<(aa){2,3}>/')({ query: {}, path: {}, hash: {} })
+        () => reverse('/:baz<(aa){2,3}>/')({})
       ).toThrow('baz undefined')
     })
   })
@@ -307,11 +248,7 @@ describe('reversing', () => {
       expect(
         reverse
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
-          ({
-            query: { hi: 'aaa', ipsum: '123' },
-            path: {},
-            hash: {}
-          })
+          ({ hi: 'aaa', ipsum: '123' })
       ).toEqual('/foo?lorem=aaa&ipsum=123')
     })
 
@@ -319,11 +256,7 @@ describe('reversing', () => {
       expect(
         reverse
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
-          ({
-            query: { hi: 'b', ipsum: '123' },
-            path: {},
-            hash: {}
-          })
+          ({ hi: 'b', ipsum: '123' })
       ).toEqual('/foo?lorem=b&ipsum=123')
     })
 
@@ -331,11 +264,7 @@ describe('reversing', () => {
       expect(
         reverse
           ('/foo?lorem=:hi<a+|b+>')
-          ({
-            query: { hi: 'aaa', bar: '123', baz: '' },
-            path: {},
-            hash: {}
-          })
+          ({ hi: 'aaa', bar: '123', baz: '' })
       ).toEqual('/foo?lorem=aaa')
     })
 
@@ -343,7 +272,7 @@ describe('reversing', () => {
       expect(
         () => reverse
           ('/foo?lorem=:hi<a+|b+>&ipsum=:ipsum')
-          ({ query: {}, path: {}, hash: {} })
+          ({})
       ).toThrow(
         'hi undefined'
       )
@@ -353,11 +282,7 @@ describe('reversing', () => {
       expect(
         reverse
           ('/foo?lorem&ipsum&dolor')
-          ({
-            path: {},
-            hash: {},
-            query: {}
-          })
+          ({})
       ).toEqual('/foo?lorem=&ipsum=&dolor=')
     })
 
@@ -365,11 +290,7 @@ describe('reversing', () => {
       expect(
         reverse
           ('/foo?lorem?=:lorem')
-          ({
-            path: {},
-            query: { lorem: '123' },
-            hash: {}
-          })
+          ({ lorem: '123' })
       ).toEqual('/foo?lorem=123')
     })
 
@@ -377,11 +298,7 @@ describe('reversing', () => {
       expect(
         reverse
           ('/foo?lorem?=:lorem')
-          ({
-            path: {},
-            query: {},
-            hash: {}
-          })
+          ({})
       ).toEqual('/foo')
     })
 
@@ -389,11 +306,7 @@ describe('reversing', () => {
       expect(
         reverse
           ('/foo?lorem?=:lorem&ipsum=:ipsum&dolor?=:dolor')
-          ({
-            path: {},
-            query: { ipsum: '123' },
-            hash: {}
-          })
+          ({ ipsum: '123' })
       ).toEqual('/foo?ipsum=123')
     })
 
@@ -401,11 +314,7 @@ describe('reversing', () => {
       expect(
         reverse
           ('/foo?lorem?=:lorem<\\d+>&ipsum=:ipsum&dolor?=:dolor')
-          ({
-            path: {},
-            query: { lorem: null, ipsum: '123' },
-            hash: {}
-          })
+          ({ lorem: null, ipsum: '123' })
       ).toEqual('/foo?ipsum=123')
     })
   })
@@ -415,25 +324,13 @@ describe('reversing', () => {
       expect(
         parse('/foo#:word<c?a*b{1,2}>')
           ('http://localhost/foo#aaabb')
-      ).toEqual({
-        query: {},
-        path: {},
-        hash: {
-          word: 'aaabb'
-        }
-      })
+      ).toEqual({ word: 'aaabb' })
     })
 
     test('happy 2', () => {
       expect(
         reverse('/foo#:word<c?a*b{1,2}>')
-          ({
-            query: {},
-            path: {},
-            hash: {
-              word: 'b'
-            }
-          })
+          ({ word: 'b' })
       ).toEqual('/foo#b')
     })
   })

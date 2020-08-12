@@ -6,7 +6,7 @@ A **super tiny** TypeScript path parser (**1.2kb** gzipped!) with a
 surprising amount of features.
 
 * 📔 [API](#api) docs
-* 🚀 Try it in a [fiddle](https://jsfiddle.net/wpo98cy4/1)
+* 🚀 Try it in a [fiddle](https://jsfiddle.net/s06mfqr5/)
 
 #### Installation
 
@@ -21,7 +21,7 @@ const userRoute =
   parse('/user/:id/messages?page=:page')
 
 >> userRoute('http://localhost/user/123/messages?page=3)')
-{ path: { id: '123' }, query: { page: '3' }, hash: {} }
+{ id: '123', page: '3' }
 ```
 
 #### Reverse parsing
@@ -34,7 +34,7 @@ import { reverse } from 'teki'
 const reverseUserRoute =
   reverse('/user/:id/messages?page=:page')
 
->> reverseUserRoute({ path: { id: 456 }, query: { page: 9 } })
+>> reverseUserRoute({ id: 456, page: 9 })
 '/user/456?page=9'
 ```
 
@@ -48,7 +48,7 @@ const queryRoute =
   parse('/myRoute?foo=:foo&bar=:bar')
 
 >> queryRoute('http://localhost/myRoute?bar=hello&foo=world')
-{ path: {}, query: { bar: 'hello', foo: 'world' }, hash: {} }
+{ bar: 'hello', foo: 'world' }
 ```
 
 #### Optional query parameters
@@ -61,10 +61,10 @@ const optionalQuery =
   parse('/myRoute?foo?=:foo&bar?=:bar')
 
 >> optionalQuery('http://localhost/myRoute')
-{ path: {}, query: { foo: null, bar: null }, hash: {} }
+{ foo: null, bar: null }
 
 >> optionalQuery(''http://localhost/myRoute?foo=test')
-{ path: {}, query: { foo: 'test', bar: null }, hash: {} }
+{ foo: 'test', bar: null }
 ```
 
 #### Refining paths using regular expressions
@@ -81,7 +81,7 @@ const userRoute =
 null
 
 >> userRoute('http://localhost/user/123')
-{ path: { id: '123' }, query: {}, hash: {} }
+{ id: '123' }
 ```
 
 #### How does it work?
@@ -98,11 +98,8 @@ for `URL` in Internet Explorer.
 #### `type RouteParams`
 
 ```typescript
-type RouteParams = {
-  path : Record<string, string>
-  query : Record<string, string | null>
-  hash : Record<string, string>
-}
+type RouteParams = 
+  Record<string, string | null>
 ```
 
 The structure of the object returned when successfully parsing a pattern.

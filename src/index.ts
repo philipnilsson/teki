@@ -1,8 +1,5 @@
-type RouteParams = {
-  path : Record<string, string>,
-  query : Record<string, string | null>,
-  hash : Record<string, string>,
-}
+type RouteParams =
+  Record<string, string | null>
 
 const decode =
   decodeURIComponent
@@ -192,30 +189,24 @@ export function parse(pattern : string) {
     const route =
       new URL(urlString)
 
-    const query : Record<string, string> =
-      {}
-
-    const path : Record<string, string> =
-      {}
-
-    const hash : Record<string, string> =
+    const params : Record<string, string> =
       {}
 
     if (
       pp(
         splitPath(trimSlashes(route.pathname)),
-        path
+        params
       ) &&
       pq(
         route.searchParams,
-        query
+        params
       ) &&
       ph(
         getHash(route.hash),
-        hash
+        params
       )
     ) {
-      return { query, path, hash }
+      return params
     }
 
     return null
@@ -275,7 +266,7 @@ export function reverse(
 
     result.pathname =
       segments
-        .map(x => reverseSegment(x, dict.path))
+        .map(x => reverseSegment(x, dict))
         .join('/')
 
     target.searchParams.forEach((regex, name) => {
@@ -285,21 +276,21 @@ export function reverse(
       name =
         opt ? name.slice(0, -1) : name
 
-      if (opt && !dict.query[name]) {
+      if (opt && !dict[name]) {
         result.searchParams.delete(name)
         return
       }
 
       result.searchParams.set(
         name,
-        reverseSegment(regex, dict.query)
+        reverseSegment(regex, dict)
       )
     })
 
     result.hash =
       reverseSegment(
         decode(target.hash),
-        dict.hash
+        dict
       )
 
     return ('' + result)
