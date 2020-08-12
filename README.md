@@ -4,7 +4,7 @@
 
 # Teki
 
-A **tiny** TypeScript path parser (it's **226 bytes** gzipped!). [API](#api), [fiddle]().
+A **tiny** TypeScript path parser (it's **226 bytes** gzipped!). [API](#api), [fiddle](https://jsfiddle.net/wpo98cy4/).
 
 #### Usage
 
@@ -13,7 +13,7 @@ A **tiny** TypeScript path parser (it's **226 bytes** gzipped!). [API](#api), [f
 const userRoute =
   parse(`/user/:id/messages?page=:page`)
 
->> userRoute('/user/123/messages?page=3)')
+>> userRoute('http://localhost/user/123/messages?page=3)')
 {
   path: { id: '123' },
   query: { page: '3' },
@@ -41,9 +41,9 @@ independently of order
 
 ```typescript
 const queryRoute =
-  parse(/myRoute?foo=:foo&bar=:bar
+  parse('/myRoute?foo=:foo&bar=:bar')
 
->> queryRoute('/myRoute?bar=hello&foo=world')
+>> queryRoute('http://localhost/myRoute?bar=hello&foo=world')
 { 
   path: {},
   query: { bar: 'hello', foo: 'world' },
@@ -61,10 +61,10 @@ expressions by writing a regex after the name in angle brackets
 const userRoute =
   parse(`/user/:id<\\d+>`)
   
->> userRoute('/user/foo')
+>> userRoute('http://localhost/user/foo')
 null
 
->> userRoute('/user/123')
+>> userRoute('http://localhost/user/123')
 { 
   path: { id: '123' },
   query: {},
@@ -113,11 +113,11 @@ This function is *curried* so that its faster on repeated usages.
 reverse :: (pattern : string) => (dict: Dict) => string
 ```
 
-Use a dictionary to reverse parse it back into a URL according to the
+Use a dictionary to reverse-parse it back into a URL using the
 specified pattern.
 
-This function will throw an `Error` when the dictionary has missing
-parameters.
+This function will **throw** if the dictionary has missing parameters
+that are specified in the pattern.
 
 This function is *curried* so that its faster on repeated usages.
 
