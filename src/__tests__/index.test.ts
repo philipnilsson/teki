@@ -193,6 +193,15 @@ describe('parsing', () => {
         ids: ['1']
       })
     })
+
+    test('multiple param - bracket style', () => {
+      expect(
+        parse('/foo?id[]*=:ids')
+          ('http://localhost/foo?id[]=1&id[]=2')
+      ).toEqual({
+        ids: ['1', '2']
+      })
+    })
   })
 
   describe('hash', () => {

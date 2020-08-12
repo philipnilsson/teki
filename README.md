@@ -67,6 +67,16 @@ const listQuery =
 { ids: ['1', '2', '3'] }
 ```
 
+You can use the "bracket style" notation as well
+
+```typescript
+const bracketStyleQuery =
+  parse('/myRoute?id[]*=:ids')
+
+>> bracketStyleQuery('http://localhost/myRoute?id[]=1&id[]=2')
+{ ids: ['1', '2'] }
+```
+
 
 #### Optional query parameters
 
