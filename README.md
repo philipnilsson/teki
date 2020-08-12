@@ -126,7 +126,7 @@ for `URL` in Internet Explorer.
 
 ```typescript
 type RouteParams = 
-  Record<string, string | null>
+  Record<string, string | null | string[]>
 ```
 
 The structure of the object returned when successfully parsing a pattern.
