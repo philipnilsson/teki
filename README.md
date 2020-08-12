@@ -4,7 +4,10 @@
 
 # Teki
 
-A **tiny** TypeScript path parser (it's **226 bytes** gzipped!). [API](#api), [fiddle](https://jsfiddle.net/wpo98cy4/).
+A **super tiny** TypeScript path parser (**1.4kb** gzipped!)
+
+* 📔 [API](#api) docs
+* 🚀 Try it in a [fiddle](https://jsfiddle.net/wpo98cy4/1)
 
 #### Usage
 
@@ -52,10 +55,10 @@ with `?`
 const optionalQuery =
   parse('/myRoute?foo?=:foo&bar?=:bar')
 
->> optionalQuery('/myRoute')
+>> optionalQuery('http://localhost/myRoute')
 { path: {}, query: { foo: null, bar: null }, hash: {} }
 
->> optionalQuery('/myRoute?foo=test')
+>> optionalQuery(''http://localhost/myRoute?foo=test')
 { path: {}, query: { foo: 'test', bar: null }, hash: {} }
 ```
 
