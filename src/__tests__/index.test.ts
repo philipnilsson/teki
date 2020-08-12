@@ -167,6 +167,32 @@ describe('parsing', () => {
         dolor: null
       })
     })
+
+    test('multiple param 1', () => {
+      expect(
+        parse('/foo?id*=:ids')
+          ('http://localhost/foo?id=1&id=2&id=3')
+      ).toEqual({
+        ids: ['1', '2', '3']
+      })
+    })
+
+    test('multiple param 2', () => {
+      expect(
+        parse('/foo?id*=:ids')
+          ('http://localhost/foo')
+      ).toEqual({
+      })
+    })
+
+    test('multiple param 3', () => {
+      expect(
+        parse('/foo?id*=:ids')
+          ('http://localhost/foo?id=1')
+      ).toEqual({
+        ids: ['1']
+      })
+    })
   })
 
   describe('hash', () => {
@@ -316,6 +342,38 @@ describe('reversing', () => {
           ('/foo?lorem?=:lorem<\\d+>&ipsum=:ipsum&dolor?=:dolor')
           ({ lorem: null, ipsum: '123' })
       ).toEqual('/foo?ipsum=123')
+    })
+
+    test('multiple params 1', () => {
+      expect(
+        reverse
+          ('/foo?lorem*=:lorem<\\d+>&dolor?=:dolor')
+          ({ lorem: ['1', '2', '3'] })
+      ).toEqual('/foo?lorem=1&lorem=2&lorem=3')
+    })
+
+    test('multiple params 2', () => {
+      expect(
+        reverse
+          ('/foo?lorem*=:lorem<\\d+>&dolor?=:dolor')
+          ({ lorem: ['1', '2', '3'], dolor: '123' })
+      ).toEqual('/foo?lorem=1&lorem=2&lorem=3&dolor=123')
+    })
+
+    test('multiple params 3', () => {
+      expect(
+        reverse
+          ('/foo?lorem*=:lorem<\\d+>&dolor?=:dolor')
+          ({ lorem: [], dolor: '123' })
+      ).toEqual('/foo?dolor=123')
+    })
+
+    test('multiple params 4', () => {
+      expect(
+        reverse
+          ('/foo?lorem*=:lorem<\\d+>&dolor?=:dolor')
+          ({})
+      ).toEqual('/foo')
     })
   })
 

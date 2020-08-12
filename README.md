@@ -2,11 +2,11 @@
 
 <img src="./src/logo.png" width="200px" />
 
-A **super tiny** TypeScript path parser (**1.2kb** gzipped!) with a
+An **incredibly tiny** TypeScript path parser (**1.3kb** gzipped!) with a
 surprising amount of features.
 
 * 📔 [API](#api) docs
-* 🚀 Try it in a [fiddle](https://jsfiddle.net/kcyz89q5/)
+* 🚀 Try it in a [fiddle](https://jsfiddle.net/y3kv4ejw/)
 
 #### Installation
 
@@ -50,6 +50,23 @@ const queryRoute =
 >> queryRoute('http://localhost/myRoute?bar=hello&foo=world')
 { bar: 'hello', foo: 'world' }
 ```
+
+#### List query parameters
+
+`teki` supports list query parameters on the form `?id=1&id=2&id=3` by
+postfixing the parameter name with `*`
+
+```typescript
+const listQuery =
+  parse('/myRoute?id*=:ids')
+
+>> listQuery('http://localhost/myRoute')
+{}
+
+>> listQuery('http://localhost/myRoute?id=1&id=2&id=3')
+{ ids: ['1', '2', '3'] }
+```
+
 
 #### Optional query parameters
 

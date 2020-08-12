@@ -1,5 +1,5 @@
 type RouteParams =
-  Record<string, string | null>
+  Record<string, string | null | string[]>
 
 const decode =
   decodeURIComponent
@@ -48,10 +48,16 @@ function parseSegment(seg : string) {
 
     return function(
       str : string,
-      paths : Record<string, string>
+      paths : RouteParams,
+      array  = false
     ) : boolean {
-      paths[name] =
-        str
+      if (array) {
+        paths[name] =
+          [].concat(paths[name] as any || [], str as any)
+      } else {
+        paths[name] =
+          str
+      }
 
       if (regex && !regex.test(str)) {
         return false
@@ -62,7 +68,7 @@ function parseSegment(seg : string) {
   } else {
     return function(
       str : string,
-      _paths : Record<string, string>
+      _paths : RouteParams
     ) : boolean {
       return str === seg
     }
@@ -77,7 +83,7 @@ function parsePaths(
 
   return function(
     path : string[],
-    params : Record<string, string>
+    params : RouteParams
   ) {
     if (targets.length !== path.length) {
       return false
@@ -93,8 +99,12 @@ function parsePaths(
   }
 }
 
-function optional(p : string) {
+function isOptional(p : string) {
   return p.endsWith('?')
+}
+
+function isList(p : string) {
+  return p.endsWith('*')
 }
 
 function parseQueries(
@@ -108,26 +118,25 @@ function parseQueries(
 
   return function(
     query : URLSearchParams,
-    params : Record<string, string>
+    params : RouteParams
   ) : boolean {
     const queryKeys =
       Array.from(query.keys())
 
-    if (!keys.every(x => optional(x) || queryKeys.includes(x))) {
+    if (!keys.every(x => isOptional(x) || isList(x) || queryKeys.includes(x))) {
       return false
     }
 
     for (let i = 0; i < keys.length; i++) {
-      let key =
-        keys[i]
+      const key =
+        paramName(keys[i])
 
-      const opt =
-        optional(key)
+      if (isList(keys[i])) {
+        Array.from(query.entries())
+          .filter(x => x[0] === key)
+          .forEach(x => parsers[i](x[1], params, true))
 
-      key =
-        opt ? key.slice(0, -1) : key
-
-      if (!parsers[i](query.get(key)!, params) && !opt) {
+      } else if (!parsers[i](query.get(key)!, params) && !isOptional(keys[i])) {
         return false
       }
     }
@@ -136,12 +145,15 @@ function parseQueries(
   }
 }
 
+const namedParamRegex =
+  /:\w[\w\d_]*(<[^>]+>)?/g
+
 function escapeRegexes(
   pattern : string
 ) : string {
 
   const match =
-    pattern.match(/:\w[\w\d_]*\??<[^>]+>/g) || []
+    pattern.match(namedParamRegex) || []
 
   for (let i = 0; i < match.length; i++) {
     const m =
@@ -189,7 +201,7 @@ export function parse(pattern : string) {
     const route =
       new URL(urlString)
 
-    const params : Record<string, string> =
+    const params : RouteParams =
       {}
 
     if (
@@ -215,10 +227,10 @@ export function parse(pattern : string) {
 
 function reverseSegment(
   str : string,
-  dict : Record<string, string | null>
+  dict : RouteParams
 ) : string {
   const match =
-    str.match(/:\w[\w\d_]*\??(<[^>]+>)?/g) || []
+    str.match(namedParamRegex) || []
 
   for (let i = 0; i < match.length; i++) {
     const m =
@@ -230,7 +242,7 @@ function reverseSegment(
     let name =
       m.slice(1, endIx < 0 ? m.length : endIx)
 
-    if (optional(name)) {
+    if (isOptional(name) || isList(name)) {
       name = name.slice(0, -1)
     }
 
@@ -239,10 +251,17 @@ function reverseSegment(
     }
 
     str =
-      str.replace(m, dict[name]!)
+      str.replace(m, dict[name] as any)
   }
 
   return str
+}
+
+function paramName(n : string) {
+  if (isOptional(n) || isList(n)) {
+    return n.slice(0, -1)
+  }
+  return n
 }
 
 export function reverse(
@@ -260,7 +279,6 @@ export function reverse(
   return function(
     dict : RouteParams
   ) : string {
-
     const result =
       pathToURL('')
 
@@ -269,22 +287,25 @@ export function reverse(
         .map(x => reverseSegment(x, dict))
         .join('/')
 
-    target.searchParams.forEach((regex, name) => {
-      const opt =
-        optional(name)
+    target.searchParams.forEach((regex, n) => {
+      const name =
+        paramName(n)
 
-      name =
-        opt ? name.slice(0, -1) : name
-
-      if (opt && !dict[name]) {
-        result.searchParams.delete(name)
-        return
+      if (isList(n)) {
+        [].concat(dict[name] as any).filter(Boolean).forEach(x => {
+          result.searchParams.append(
+            name,
+            reverseSegment(x, dict)
+          )
+        })
+      } else {
+        if (!isOptional(n) || dict[name]) {
+          result.searchParams.set(
+            name,
+            reverseSegment(regex, dict)
+          )
+        }
       }
-
-      result.searchParams.set(
-        name,
-        reverseSegment(regex, dict)
-      )
     })
 
     result.hash =
